@@ -8,6 +8,7 @@ if ($env:APPLICATIONINSIGHTS_CONNECTION_STRING -or $env:APPINSIGHTS_INSTRUMENTAT
     $hasAppInsights = $true
 }
 if ($hasAppInsights) {
+    Set-Location -Path $PSScriptRoot
     $SwAppInsights = [System.Diagnostics.Stopwatch]::StartNew()
     try {
         $AppInsightsDllPath = Join-Path $PSScriptRoot 'Shared\AppInsights\Microsoft.ApplicationInsights.dll'
@@ -125,6 +126,11 @@ if (!$LastStartup -or $CurrentVersion -ne $LastStartup.Version) {
 }
 $SwVersion.Stop()
 $Timings['VersionCheck'] = $SwVersion.Elapsed.TotalMilliseconds
+
+Set-CIPPEnvVarBackup
+if ($env:AzureWebJobsStorage -ne 'UseDevelopmentStorage=true' -and $env:NonLocalHostAzurite -ne 'true') {
+    Set-CIPPOffloadFunctionTriggers
+}
 
 $TotalStopwatch.Stop()
 $Timings['Total'] = $TotalStopwatch.Elapsed.TotalMilliseconds
